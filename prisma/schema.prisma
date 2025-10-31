@@ -1,0 +1,49 @@
+// Prisma Schema for Vibelrn Review Management System
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Category table
+model Category {
+  id          BigInt          @id @default(autoincrement())
+  name        String          @unique @db.VarChar(255)
+  description String?         @db.Text
+  reviews     ReviewHistory[]
+
+  @@map("Category")
+}
+
+// ReviewHistory table - stores all versions of reviews
+model ReviewHistory {
+  id         BigInt    @id @default(autoincrement())
+  text       String?   @db.VarChar(255)
+  stars      Int // 1-10 rating
+  review_id  String    @db.VarChar(255) // Groups review versions together
+  tone       String?   @db.VarChar(255) // Computed by LLM
+  sentiment  String?   @db.VarChar(255) // Computed by LLM
+  category_id BigInt
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  // Relations
+  category   Category  @relation(fields: [category_id], references: [id])
+
+  @@index([review_id])
+  @@index([category_id])
+  @@index([created_at])
+  @@map("ReviewHistory")
+}
+
+// AccessLog table - logs all API requests
+model AccessLog {
+  id   BigInt  @id @default(autoincrement())
+  text String  @db.VarChar(255)
+
+  @@map("AccessLog")
+}

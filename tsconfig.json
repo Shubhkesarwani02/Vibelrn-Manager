@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    /* === File Paths === */
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    /* === Language & Module Settings === */
+    "target": "ES2022",                   // Reasonable modern Node target
+    "module": "NodeNext",                 // Needed for import/export
+    "moduleResolution": "NodeNext",       // Same as module for ESM
+    "esModuleInterop": true,              // Allow default import for CommonJS modules
+    "allowSyntheticDefaultImports": true, // Avoid import issues with Express & others
+    "resolveJsonModule": true,            // So you can import .json files
+
+    /* === Environment & Types === */
+    "lib": ["ESNext"],                    // Use modern JS features
+    "types": ["node"],                    // Node.js built-in types
+    "skipLibCheck": true,                 // Faster builds
+
+    /* === Output Options === */
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    /* === Strictness === */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    /* === Import Behavior === */
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+
+    /* === Advanced === */
+    "moduleDetection": "force",
+    "noUncheckedSideEffectImports": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}
