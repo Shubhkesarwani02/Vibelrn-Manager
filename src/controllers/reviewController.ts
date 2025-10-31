@@ -10,7 +10,7 @@ import {
   categoryExists,
 } from '../services/reviewService.js';
 import { validatePaginationParams } from '../utils/pagination.js';
-import { logQueue, llmQueue } from '../config/bullmq.js';
+import { logAPIRequest, addBatchToLLMQueue } from '../services/queueService.js';
 
 /**
  * GET /reviews/trends
@@ -19,9 +19,7 @@ import { logQueue, llmQueue } from '../config/bullmq.js';
 export async function getReviewTrends(req: Request, res: Response) {
   try {
     // Log request asynchronously via BullMQ
-    await logQueue.add('log-request', {
-      message: `GET /reviews/trends - ${new Date().toISOString()}`,
-    });
+    await logAPIRequest('GET /reviews/trends');
 
     // Fetch trending categories
     const trends = await getTrendingCategories();
@@ -83,8 +81,10 @@ export async function getReviews(req: Request, res: Response) {
     );
 
     // Log request asynchronously via BullMQ
-    await logQueue.add('log-request', {
-      message: `GET /reviews?category_id=${categoryId}&page=${page}&limit=${limit} - ${new Date().toISOString()}`,
+    await logAPIRequest('GET /reviews', { 
+      category_id: categoryId.toString(), 
+      page, 
+      limit 
     });
 
     // Fetch reviews with pagination
@@ -97,15 +97,18 @@ export async function getReviews(req: Request, res: Response) {
 
     // Queue LLM jobs for reviews missing tone/sentiment
     if (reviewsNeedingLLM.length > 0) {
-      for (const review of reviewsNeedingLLM) {
-        await llmQueue.add('process-review', {
+      const llmJobs = reviewsNeedingLLM
+        .filter(review => review.text) // Filter out null texts
+        .map(review => ({
           id: review.id.toString(),
-          text: review.text,
+          text: review.text!,
           stars: review.stars,
-        });
-      }
+        }));
       
-      console.log(`🤖 Queued ${reviewsNeedingLLM.length} reviews for LLM processing`);
+      if (llmJobs.length > 0) {
+        await addBatchToLLMQueue(llmJobs);
+        console.log(`🤖 Queued ${llmJobs.length} reviews for LLM processing`);
+      }
     }
 
     // Convert BigInt to string for JSON serialization
