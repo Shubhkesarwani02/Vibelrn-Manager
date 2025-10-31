@@ -8,6 +8,9 @@ import { logQueue, llmQueue } from './config/bullmq.js';
 import './jobs/logWorker.js';
 import './jobs/llmWorker.js';
 
+// Import routes
+import reviewRoutes from './routes/reviewRoutes.js';
+
 dotenv.config();
 
 const app = express();
@@ -23,6 +26,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   console.log(`[${timestamp}] ${req.method} ${req.url}`);
   next();
 });
+
+// API Routes
+app.use('/reviews', reviewRoutes);
 
 // Health check route
 app.get('/health', (req: Request, res: Response) => {
@@ -127,10 +133,14 @@ app.listen(PORT, () => {
   console.log('✅ Redis: Connected');
   console.log('✅ BullMQ: Active');
   console.log('\n📋 Available routes:');
-  console.log(`   GET  /health       - Health check`);
-  console.log(`   GET  /test/db      - Test database connection`);
-  console.log(`   GET  /test/redis   - Test Redis connection`);
-  console.log(`   GET  /test/queue   - Test BullMQ queue`);
+  console.log(`   GET  /health              - Health check`);
+  console.log(`   GET  /test/db             - Test database connection`);
+  console.log(`   GET  /test/redis          - Test Redis connection`);
+  console.log(`   GET  /test/queue          - Test BullMQ queue`);
+  console.log('\n📊 Review API routes:');
+  console.log(`   GET  /reviews/trends      - Get top 5 trending categories`);
+  console.log(`   GET  /reviews             - Get reviews by category (with pagination)`);
+  console.log(`   GET  /reviews/pending-llm - Get reviews needing LLM processing`);
   console.log('\n💡 Press Ctrl+C to stop\n');
 });
 
