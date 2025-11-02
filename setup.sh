@@ -104,22 +104,11 @@ else
     echo "  macOS: brew services start redis"
     echo "  Linux: sudo systemctl start redis"
     echo ""
-    read -p "Press Enter after starting Redis..."
 fi
 echo ""
 
-# Step 7: Seed database
-echo "🌱 Step 7: Seeding database with test data..."
-if npm run seed; then
-    print_success "Database seeded with test data"
-else
-    print_error "Failed to seed database"
-    exit 1
-fi
-echo ""
-
-# Step 8: Build TypeScript
-echo "🔨 Step 8: Building TypeScript..."
+# Step 7: Build TypeScript
+echo "🔨 Step 7: Building TypeScript..."
 if npm run build; then
     print_success "TypeScript compiled successfully"
 else
@@ -143,12 +132,6 @@ echo ""
 echo "3. Test the API:"
 echo "   ${GREEN}curl http://localhost:3000/health${NC}"
 echo ""
-echo "4. View documentation:"
-echo "   - README.md - Overview and quick start"
-echo "   - TESTING_GUIDE.md - Complete testing instructions"
-echo "   - DEPLOYMENT_GUIDE.md - Production deployment"
-echo "   - QUICK_REFERENCE.md - API reference"
-echo ""
-echo "For detailed testing: see TESTING_GUIDE.md"
+echo "4. View API documentation in README.md"
 echo ""
 print_success "Happy coding! 🚀"

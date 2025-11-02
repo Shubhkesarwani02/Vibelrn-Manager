@@ -44,50 +44,6 @@ app.get('/health', (req: Request, res: Response) => {
   });
 });
 
-// Test database connection
-app.get('/test/db', async (req: Request, res: Response) => {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    res.json({ message: '✅ Database connection successful' });
-  } catch (error) {
-    res.status(500).json({
-      message: '❌ Database connection failed',
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
-  }
-});
-
-// Test Redis connection
-app.get('/test/redis', async (req: Request, res: Response) => {
-  try {
-    await redis.ping();
-    res.json({ message: '✅ Redis connection successful' });
-  } catch (error) {
-    res.status(500).json({
-      message: '❌ Redis connection failed',
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
-  }
-});
-
-// Test BullMQ job queue
-app.get('/test/queue', async (req: Request, res: Response) => {
-  try {
-    const job = await logQueue.add('test-log', {
-      message: `Test log at ${new Date().toISOString()}`,
-    });
-    res.json({
-      message: '✅ BullMQ job added successfully',
-      jobId: job.id,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: '❌ BullMQ job failed',
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
-  }
-});
-
 // 404 handler
 app.use((req: Request, res: Response) => {
   res.status(404).json({
@@ -126,21 +82,15 @@ process.on('SIGINT', async () => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log('\n🚀 ====================================');
-  console.log(`   Server running on http://localhost:${PORT}`);
-  console.log('   ====================================');
+  console.log('\n🚀 Server running on http://localhost:' + PORT);
   console.log('✅ Database: Connected');
   console.log('✅ Redis: Connected');
   console.log('✅ BullMQ: Active');
-  console.log('\n📋 Available routes:');
-  console.log(`   GET  /health              - Health check`);
-  console.log(`   GET  /test/db             - Test database connection`);
-  console.log(`   GET  /test/redis          - Test Redis connection`);
-  console.log(`   GET  /test/queue          - Test BullMQ queue`);
-  console.log('\n📊 Review API routes:');
-  console.log(`   GET  /reviews/trends      - Get top 5 trending categories`);
-  console.log(`   GET  /reviews             - Get reviews by category (with pagination)`);
-  console.log(`   GET  /reviews/pending-llm - Get reviews needing LLM processing`);
+  console.log('\n� API Endpoints:');
+  console.log('   GET  /health              - Health check');
+  console.log('   GET  /reviews/trends      - Top trending categories');
+  console.log('   GET  /reviews             - Reviews by category (requires category_id)');
+  console.log('   GET  /reviews/pending-llm - Reviews needing LLM processing');
   console.log('\n💡 Press Ctrl+C to stop\n');
 });
 

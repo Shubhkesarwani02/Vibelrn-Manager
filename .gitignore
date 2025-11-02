@@ -1,8 +1,5 @@
 # Dependencies
 node_modules/
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
 
 # Environment variables
 .env
@@ -16,10 +13,6 @@ build/
 # Logs
 logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
 
 # OS files
 .DS_Store
@@ -34,11 +27,6 @@ Thumbs.db
 
 # Testing
 coverage/
-.nyc_output/
-
-# Prisma
-prisma/migrations/*/
-!prisma/migrations/.gitkeep
 
 # Temporary files
 *.tmp

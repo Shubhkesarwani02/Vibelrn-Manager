@@ -135,9 +135,6 @@ GEMINI_API_KEY=your_gemini_api_key_here
 ```bash
 # Run database migrations
 npm run db:migrate
-
-# Seed the database with initial data (optional)
-npm run seed
 ```
 
 ### 5. Automated Setup
@@ -202,7 +199,7 @@ npm run build
 npm start
 
 # Terminal 2: Start the background workers
-npm run workers:build
+npm run workers
 ```
 
 ### Database Management
@@ -210,12 +207,6 @@ npm run workers:build
 ```bash
 # Open Prisma Studio (database GUI)
 npm run db:studio
-
-# Reset database (⚠️ deletes all data)
-npm run db:reset
-
-# Deploy migrations (production)
-npm run db:deploy
 ```
 
 ### Health Check
@@ -253,79 +244,89 @@ GET /health
 ```
 Returns server health status and service connectivity.
 
-#### Create Review
-```http
-POST /reviews
-Content-Type: application/json
-
+**Response:**
+```json
 {
-  "text": "This product exceeded my expectations!",
-  "stars": 9,
-  "category_id": 1
+  "status": "healthy",
+  "message": "Server is running! 🚀",
+  "timestamp": "2025-11-01T12:00:00.000Z",
+  "services": {
+    "database": "connected",
+    "redis": "connected",
+    "bullmq": "active"
+  }
 }
 ```
+
+#### Get Trending Categories
+```http
+GET /reviews/trends
+```
+
+Returns top 5 categories based on average stars.
 
 **Response:**
 ```json
 {
   "success": true,
-  "data": {
-    "id": "123",
-    "text": "This product exceeded my expectations!",
-    "stars": 9,
-    "category_id": 1,
-    "review_id": "rev_abc123",
-    "created_at": "2025-11-01T12:00:00.000Z"
-  },
-  "message": "Review created successfully"
+  "data": [
+    {
+      "category_id": "1",
+      "category_name": "Electronics",
+      "average_stars": 8.5,
+      "total_reviews": 150
+    }
+  ],
+  "count": 5
 }
 ```
 
-#### Get All Reviews
+#### Get Reviews by Category
 ```http
-GET /reviews?page=1&limit=10&category_id=1&sortBy=created_at&sortOrder=desc
+GET /reviews?category_id=1&page=1&limit=10
 ```
 
 **Query Parameters:**
+- `category_id` (required): Category ID to filter reviews
 - `page` (optional): Page number (default: 1)
-- `limit` (optional): Items per page (default: 10)
-- `category_id` (optional): Filter by category
-- `sortBy` (optional): Sort field (default: created_at)
-- `sortOrder` (optional): asc or desc (default: desc)
+- `limit` (optional): Items per page (default: 10, max: 100)
 
-#### Get Review by ID
-```http
-GET /reviews/:id
-```
-
-#### Update Review
-```http
-PUT /reviews/:id
-Content-Type: application/json
-
+**Response:**
+```json
 {
-  "text": "Updated review text",
-  "stars": 8,
-  "category_id": 1
+  "success": true,
+  "data": [
+    {
+      "id": "123",
+      "text": "Great product!",
+      "stars": 9,
+      "tone": "positive",
+      "sentiment": "satisfied",
+      "category_id": "1",
+      "created_at": "2025-11-01T12:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 150,
+    "totalPages": 15
+  }
 }
 ```
 
-#### Delete Review
+#### Get Pending LLM Reviews
 ```http
-DELETE /reviews/:id
+GET /reviews/pending-llm
 ```
 
-#### Get Review History
-```http
-GET /reviews/:review_id/history
-```
-Returns all versions of a review.
+Returns reviews that need LLM processing (missing tone/sentiment).
 
-For complete API documentation, see [API.md](docs/API.md).
+For complete API documentation, see [ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## 🛠️ Development
 
-### Project Scripts
+### Available Scripts
 
 ```bash
 # Development
@@ -337,22 +338,14 @@ npm run build            # Compile TypeScript to JavaScript
 
 # Production
 npm start                # Run compiled API server
-npm run workers:build    # Run compiled workers
+npm run workers          # Run workers
 
 # Database
 npm run db:migrate       # Run migrations
-npm run db:deploy        # Deploy migrations (production)
 npm run db:studio        # Open Prisma Studio
-npm run db:reset         # Reset database
-npm run seed             # Seed database
 
-# Testing & Verification
+# Testing
 npm run verify           # Run verification tests
-npm test                 # Alias for verify
-
-# Maintenance
-npm run clean            # Remove dist and node_modules
-npm run reinstall        # Clean and reinstall dependencies
 ```
 
 ### Testing
@@ -363,49 +356,17 @@ Run the verification script to test all endpoints:
 npm run verify
 ```
 
-This script tests:
-- ✅ Server health
-- ✅ Database connectivity
-- ✅ Redis connectivity
-- ✅ CRUD operations
-- ✅ Pagination
-- ✅ Review history
-- ✅ Background job processing
-
-### Code Structure
-
-```typescript
-// Example service layer pattern
-import { addBatchToLLMQueue } from '../services/queueService.js';
-import { createReview } from '../services/reviewService.js';
-
-export const createReviewController = async (req, res) => {
-  const review = await createReview(req.body);
-  await addBatchToLLMQueue([review]);
-  res.json({ success: true, data: review });
-};
-```
-
 ## 🚢 Deployment
-
-For detailed deployment instructions, see [DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ### Quick Deployment Checklist
 
 1. **Environment Variables**: Set all production environment variables
-2. **Database**: Run `npm run db:deploy` for production migrations
+2. **Database**: Run `npm run db:migrate` for migrations
 3. **Build**: Compile TypeScript with `npm run build`
 4. **Process Management**: Use PM2 or similar for process management
-5. **Reverse Proxy**: Configure nginx or similar for SSL termination
-6. **Monitoring**: Set up logging and monitoring solutions
-7. **Scaling**: Run multiple worker instances for high throughput
+5. **Monitoring**: Set up logging and monitoring solutions
 
-### Docker Deployment (Recommended)
-
-```bash
-# Build and run with Docker Compose
-docker-compose up -d
-```
+For detailed deployment instructions, see [ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## 📁 Project Structure
 
@@ -436,9 +397,7 @@ vibelrn-manager/
 │   ├── seed.ts           # Database seeding
 │   └── migrations/       # Migration history
 ├── docs/
-│   ├── API.md            # API documentation
-│   ├── ARCHITECTURE.md   # System architecture
-│   └── DEPLOYMENT.md     # Deployment guide
+│   └── ARCHITECTURE.md   # System architecture & API docs
 ├── package.json
 ├── tsconfig.json
 ├── setup.sh              # Automated setup script
@@ -455,18 +414,6 @@ Contributions are welcome! Please follow these steps:
 3. Commit your changes: `git commit -m 'Add amazing feature'`
 4. Push to the branch: `git push origin feature/amazing-feature`
 5. Open a Pull Request
-
-### Development Guidelines
-
-- Follow TypeScript best practices
-- Write meaningful commit messages
-- Add tests for new features
-- Update documentation as needed
-- Maintain consistent code style
-
-## 📄 License
-
-This project is licensed under the ISC License.
 
 ## 👤 Author
 

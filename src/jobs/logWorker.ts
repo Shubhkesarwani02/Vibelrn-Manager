@@ -24,22 +24,13 @@ export const logWorker = new Worker(
           text: message,
         },
       });
-      console.log(`📝 Logged: ${message}`);
       return { success: true };
     } catch (error) {
-      console.error('❌ Error logging to database:', error);
+      console.error('Error logging to database:', error);
       throw error;
     }
   },
   { connection }
 );
-
-logWorker.on('completed', (job) => {
-  console.log(`✅ Log job ${job.id} completed`);
-});
-
-logWorker.on('failed', (job, err) => {
-  console.error(`❌ Log job ${job?.id} failed:`, err.message);
-});
 
 console.log('🔄 Log worker started');

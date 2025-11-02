@@ -41,11 +41,9 @@ export class GeminiService {
       const prompt = this.buildPrompt(text, stars);
       const response = await this.callGeminiAPI(prompt);
       const result = this.parseGeminiResponse(response);
-
-      console.log(`🤖 Gemini analyzed review: tone=${result.tone}, sentiment=${result.sentiment}`);
       return result;
     } catch (error) {
-      console.error('❌ Error calling Gemini API:', error);
+      console.error('Error calling Gemini API:', error);
       return this.fallbackAnalysis(stars);
     }
   }
@@ -118,7 +116,7 @@ Guidelines:
           sentiment: this.validateSentiment(parsed.sentiment),
         };
       } catch (parseError) {
-        console.warn('⚠️  Failed to parse Gemini JSON response:', parseError);
+        // Failed to parse JSON, will try manual extraction
       }
     }
 
@@ -168,8 +166,6 @@ Guidelines:
    * Fallback analysis based on star rating when API is unavailable
    */
   private fallbackAnalysis(stars: number): ToneSentimentResult {
-    console.log(`⚠️  Using fallback analysis for ${stars} stars`);
-    
     if (stars >= 8) {
       return { tone: 'positive', sentiment: 'satisfied' };
     } else if (stars >= 6) {

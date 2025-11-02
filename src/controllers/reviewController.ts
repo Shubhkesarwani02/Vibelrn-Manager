@@ -107,7 +107,6 @@ export async function getReviews(req: Request, res: Response) {
       
       if (llmJobs.length > 0) {
         await addBatchToLLMQueue(llmJobs);
-        console.log(`🤖 Queued ${llmJobs.length} reviews for LLM processing`);
       }
     }
 

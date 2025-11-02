@@ -21,8 +21,6 @@ export const llmWorker = new Worker(
     const { id, text, stars } = job.data;
 
     try {
-      console.log(`🤖 Processing review ${id}...`);
-
       // Get tone and sentiment from Gemini service
       const { tone, sentiment } = await geminiService.analyzeToneSentiment(text, stars);
 
@@ -40,11 +38,8 @@ export const llmWorker = new Worker(
         message: `LLM_PROCESSED - review_id: ${id}, tone: ${tone}, sentiment: ${sentiment} - ${new Date().toISOString()}`,
       });
 
-      console.log(`✅ Analyzed review ${id}: tone=${tone}, sentiment=${sentiment}`);
       return { success: true, tone, sentiment };
     } catch (error) {
-      console.error(`❌ Error analyzing review ${id}:`, error);
-      
       // Log the failure
       await addToLogQueue({
         message: `LLM_FAILED - review_id: ${id}, error: ${error instanceof Error ? error.message : 'Unknown error'} - ${new Date().toISOString()}`,
@@ -58,13 +53,5 @@ export const llmWorker = new Worker(
     concurrency: 5, // Process up to 5 LLM requests concurrently
   }
 );
-
-llmWorker.on('completed', (job) => {
-  console.log(`✅ LLM job ${job.id} completed`);
-});
-
-llmWorker.on('failed', (job, err) => {
-  console.error(`❌ LLM job ${job?.id} failed:`, err.message);
-});
 
 console.log('🤖 LLM worker started');
